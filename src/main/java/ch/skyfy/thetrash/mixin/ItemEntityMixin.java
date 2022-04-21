@@ -10,7 +10,10 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.Inventories;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
+import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.*;
+import net.minecraft.nbt.visitor.NbtElementVisitor;
 import net.minecraft.network.packet.s2c.play.ItemPickupAnimationS2CPacket;
 import net.minecraft.stat.Stats;
 import net.minecraft.util.ActionResult;
@@ -44,7 +47,8 @@ public abstract class ItemEntityMixin extends Entity {
     @Shadow
     public abstract ItemStack getStack();
 
-    @Shadow protected abstract void initDataTracker();
+    @Shadow
+    protected abstract void initDataTracker();
 
     public ItemEntityMixin(EntityType<?> type, World world) {
         super(type, world);
@@ -59,24 +63,30 @@ public abstract class ItemEntityMixin extends Entity {
         var stack = itemEntity.getStack();
 
         // get shulkerbox inventory
-        for(int slot = 0; slot < player.getInventory().size(); slot++){
-           var itemStack = player.getInventory().getStack(slot);
-           if(itemStack.getTranslationKey().contains("shulker")){
-//               System.out.println("shulker found");
-               System.out.println(itemStack.getItem().getClass().getCanonicalName());
-               if(itemStack.getItem() instanceof BlockItem blockItem){
-                   if(blockItem.getBlock() instanceof ShulkerBoxBlock shulkerBoxBlock){
-//                       System.out.println("shulkerBoxBlock found");
-                       DefaultedList<ItemStack> defaultedList_1 = DefaultedList.ofSize(27, ItemStack.EMPTY);
+        for (int slot = 0; slot < player.getInventory().size(); slot++) {
+            var slotItemStack = player.getInventory().getStack(slot);
+            if (slotItemStack.getTranslationKey().contains("shulker")) {
+                if (slotItemStack.getItem() instanceof BlockItem blockItem) {
+                    if (blockItem.getBlock() instanceof ShulkerBoxBlock shulkerBoxBlock) {
 
-                       Inventories.readNbt(blockItem.getDefaultStack().getOrCreateNbt(), defaultedList_1);
-//                       System.out.println("ok");
-                       defaultedList_1.forEach(itemStack1 -> {
-                           System.out.println(itemStack1.getTranslationKey());
-                       });
-                   }
-               }
-           }
+                        if (slotItemStack.getNbt() != null) {
+                            var items = DefaultedList.ofSize(27, ItemStack.EMPTY);
+                            var blockEntityTag = slotItemStack.getNbt().getCompound("BlockEntityTag");
+                            Inventories.readNbt(blockEntityTag, items);
+
+                            // if our shulkerbox contains at least one , we can insert
+                            if(items.stream().anyMatch(itemStack1 -> itemStack1.getTranslationKey().equalsIgnoreCase(stack.getTranslationKey()))){
+//                                shulkerBoxBlock.appendStacks(ItemGroup.BUILDING_BLOCKS, DefaultedList.ofSize(1, stack));
+                                items.add(stack);
+//                                Inventories.writeNbt(blockEntityTag, items);
+                                world.removeBlockEntity(itemEntity.getBlockPos());
+                                callbackInfo.cancel();
+                            }
+
+                        }
+                    }
+                }
+            }
         }
 
 //        var result = player.getInventory().insertStack(stack);
