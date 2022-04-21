@@ -78,8 +78,14 @@ public abstract class ItemEntityMixin extends Entity {
                             if(items.stream().anyMatch(itemStack1 -> itemStack1.getTranslationKey().equalsIgnoreCase(stack.getTranslationKey()))){
 //                                shulkerBoxBlock.appendStacks(ItemGroup.BUILDING_BLOCKS, DefaultedList.ofSize(1, stack));
                                 items.add(stack);
-//                                Inventories.writeNbt(blockEntityTag, items);
-                                world.removeBlockEntity(itemEntity.getBlockPos());
+
+
+//                                Inventories.writeNbt(blockEntityTag, items, true);
+
+//                                var nbt = slotItemStack.getOrCreateNbt().put("BlockEntityTag", Inventories.writeNbt(new NbtCompound(), items, true));
+
+//                                Inventories.writeNbt(, items);
+//                                world.removeBlockEntity(itemEntity.getBlockPos());
                                 callbackInfo.cancel();
                             }
 
