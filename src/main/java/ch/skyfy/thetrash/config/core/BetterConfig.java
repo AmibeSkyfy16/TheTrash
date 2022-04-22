@@ -8,7 +8,7 @@ import java.nio.file.Path;
 import static ch.skyfy.thetrash.TheTrash.LOGGER;
 import static ch.skyfy.thetrash.TheTrash.MOD_ID;
 
-@SuppressWarnings("unused")
+@SuppressWarnings({"unused", "UnusedReturnValue"})
 public class BetterConfig {
 
     public static Path CONFIG_DIRECTORY = FabricLoader.getInstance().getConfigDir().resolve(MOD_ID);

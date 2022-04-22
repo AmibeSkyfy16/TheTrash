@@ -59,36 +59,45 @@ public abstract class ItemEntityMixin extends Entity {
             cancellable = true
     )
     public void onPlayerCollision(PlayerEntity player, CallbackInfo callbackInfo) {
+
+
+        if(0 == 0)return;
+
         var itemEntity = (ItemEntity) (Object) this;
         var stack = itemEntity.getStack();
 
-        // get shulkerbox inventory
         for (int slot = 0; slot < player.getInventory().size(); slot++) {
             var slotItemStack = player.getInventory().getStack(slot);
             if (slotItemStack.getTranslationKey().contains("shulker")) {
                 if (slotItemStack.getItem() instanceof BlockItem blockItem) {
                     if (blockItem.getBlock() instanceof ShulkerBoxBlock shulkerBoxBlock) {
-
                         if (slotItemStack.getNbt() != null) {
                             var items = DefaultedList.ofSize(27, ItemStack.EMPTY);
                             var blockEntityTag = slotItemStack.getNbt().getCompound("BlockEntityTag");
                             Inventories.readNbt(blockEntityTag, items);
-
-                            // if our shulkerbox contains at least one , we can insert
+                            // if the shulker contains at least once the item that picked up we insert it, then cancel and remove the item on the ground
                             if(items.stream().anyMatch(itemStack1 -> itemStack1.getTranslationKey().equalsIgnoreCase(stack.getTranslationKey()))){
-//                                shulkerBoxBlock.appendStacks(ItemGroup.BUILDING_BLOCKS, DefaultedList.ofSize(1, stack));
-                                items.add(stack);
-
-
-//                                Inventories.writeNbt(blockEntityTag, items, true);
-
-//                                var nbt = slotItemStack.getOrCreateNbt().put("BlockEntityTag", Inventories.writeNbt(new NbtCompound(), items, true));
-
-//                                Inventories.writeNbt(, items);
-//                                world.removeBlockEntity(itemEntity.getBlockPos());
+                                var shouldBreak = false;
+                                for (int i = 0; i < items.size(); i++) {
+                                    var s = items.get(i);
+                                    if(s.getTranslationKey().equalsIgnoreCase(stack.getTranslationKey())){
+                                        if(stack.getCount() + s.getCount() <= 64){
+                                            stack.setCount(stack.getCount() + s.getCount());
+                                            items.set(i, stack);
+                                            shouldBreak = true;
+                                        }
+                                    }else if(s == ItemStack.EMPTY){
+                                        items.set(i, stack);
+                                        shouldBreak = true;
+                                    }
+                                    if(shouldBreak){
+                                        Inventories.writeNbt(blockEntityTag, items, true);
+                                        break;
+                                    }
+                                }
+                                itemEntity.remove(RemovalReason.DISCARDED);
                                 callbackInfo.cancel();
                             }
-
                         }
                     }
                 }
