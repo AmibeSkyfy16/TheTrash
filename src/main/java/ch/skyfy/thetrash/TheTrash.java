@@ -9,10 +9,10 @@ public class TheTrash implements ModInitializer {
 
     public static final String MOD_ID = "thetrash";
 
-    public static final Logger LOGGER = LogManager.getLogger("ExampleConfig");
+    public static final Logger LOGGER = LogManager.getLogger();
 
     @Override
     public void onInitialize() {
-        BetterConfig.initialize(new Class[]{});
+        BetterConfig.initialize(new Class[]{}); // This is useless (only for now)
     }
 }
