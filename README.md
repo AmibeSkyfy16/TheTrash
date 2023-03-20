@@ -7,4 +7,4 @@ So if the player pickup one of this item, it will go directly in the shulker
 
 This mod work server side
 
-This mod required Fabric Loader 0.13.3 or greater and Java 17
+This mod required Fabric Loader 0.14.17 or greater and Java 17

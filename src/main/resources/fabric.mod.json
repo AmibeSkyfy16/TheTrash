@@ -24,12 +24,14 @@
   ],
 
   "depends": {
-    "fabricloader": ">=0.13.3",
+    "java": ">=17",
+    "minecraft": "1.19.4",
+    "fabricloader": ">=0.14.17",
     "fabric": "*",
-    "minecraft": "1.18.x",
-    "java": ">=17"
+    "fabric-language-kotlin": ">=1.9.2+kotlin.1.8.10"
+
   },
   "suggests": {
-    "another-mod": "*"
+
   }
 }
