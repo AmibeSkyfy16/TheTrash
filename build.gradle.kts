@@ -12,14 +12,12 @@
 
 @file:Suppress("GradlePackageVersionRange")
 
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-
 val transitiveInclude: Configuration by configurations.creating
 
 plugins {
     id("fabric-loom") version "1.1-SNAPSHOT"
-    id("org.jetbrains.kotlin.jvm") version "1.8.10"
-    id("org.jetbrains.kotlin.plugin.serialization") version "1.8.10"
+    id("org.jetbrains.kotlin.jvm") version "1.8.20"
+    id("org.jetbrains.kotlin.plugin.serialization") version "1.8.20"
     idea
 }
 
@@ -65,28 +63,37 @@ tasks {
     }
 
     java {
+        toolchain {
+//            languageVersion.set(JavaLanguageVersion.of(javaVersion.toString()))
+//            vendor.set(JvmVendorSpec.BELLSOFT)
+        }
         withSourcesJar()
+        withJavadocJar()
     }
 
     named<Wrapper>("wrapper") {
-        gradleVersion = "8.0.2"
+        gradleVersion = "8.1"
         distributionType = Wrapper.DistributionType.BIN
     }
 
-    named<KotlinCompile>("compileKotlin") {
-        kotlinOptions.jvmTarget = javaVersion.toString()
-        kotlinOptions.freeCompilerArgs += "-Xskip-prerelease-check"
-    }
-
-    named<JavaCompile>("compileJava") {
-        options.encoding = "UTF-8"
-        options.release.set(javaVersion.toString().toInt())
+    named<Javadoc>("javadoc") {
+        options {
+            (this as CoreJavadocOptions).addStringOption("Xdoclint:none", "-quiet")
+        }
     }
 
     named<Jar>("jar") {
-        from("LICENSE") {
-            rename { "${it}_${project.base.archivesName.get()}" }
-        }
+        from("LICENSE") { rename { "${it}_${base.archivesName.get()}" } }
+    }
+
+    withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+        kotlinOptions.jvmTarget = javaVersion.toString()
+//        kotlinOptions.freeCompilerArgs += "-Xskip-prerelease-check" // Required by others project like SilkMC. Also add this to intellij setting under Compiler -> Kotlin Compiler -> Additional ...
+    }
+
+    withType<JavaCompile>().configureEach {
+        options.encoding = "UTF-8"
+        options.release.set(javaVersion.toString().toInt())
     }
 
     named<Test>("test") { // https://stackoverflow.com/questions/40954017/gradle-how-to-get-output-from-test-stderr-stdout-into-console
@@ -107,24 +114,16 @@ tasks {
     }
 
     val copyJarToTestServer = register("copyJarToTestServer") {
-        println("copy to server")
-        copyFile("build/libs/TheTrash-${project.properties["mod_version"]}.jar", project.property("testServerModsFolder") as String)
+        println("copying jar to server")
+//        copyFile("build/libs/${project.properties["archives_name"]}-${project.properties["mod_version"]}.jar", project.property("testServerModsFolder") as String)
+//        copyFile("build/libs/${project.properties["archives_name"]}-${project.properties["mod_version"]}.jar", project.property("testClientModsFolder") as String)
     }
 
-    build {
-        doLast {
-            copyJarToTestServer.get()
-        }
-    }
+    build { doLast { copyJarToTestServer.get() } }
 
 }
 
-fun copyFile(src: String, dest: String) {
-    copy {
-        from(src)
-        into(dest)
-    }
-}
+fun copyFile(src: String, dest: String) = copy { from(src);into(dest) }
 
 fun DependencyHandlerScope.includeTransitive(
     root: ResolvedDependency?,
