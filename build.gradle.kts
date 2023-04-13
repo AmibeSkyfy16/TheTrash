@@ -62,6 +62,73 @@ tasks {
         }
     }
 
+    loom {
+        runs {
+            this.getByName("client") {
+                runDir = "testclient"
+
+                val file = File("preconfiguration/doneclient.txt")
+                if (!file.exists()) {
+                    println("copying to client")
+                    file.createNewFile()
+
+                    // Copy some default files to the test client
+                    copy {
+                        from("preconfiguration/prepared_client/.")
+                        into("testclient")
+                        include("options.txt") // options.txt with my favorite settings
+                    }
+
+                    // Copying the world to use
+                    copy {
+                        from("preconfiguration/worlds/.")
+                        include("testworld#1/**")
+                        into("testclient/saves")
+                    }
+
+                    // Copying useful mods
+                    copy {
+                        from("preconfiguration/mods/client/.", "preconfiguration/mods/both/.")
+                        include("*.jar")
+                        into("testclient/mods")
+                    }
+
+                }
+            }
+            this.getByName("server") {
+                runDir = "testserver"
+
+                val file = File("preconfiguration/doneserver.txt")
+                if (!file.exists()) {
+                    file.createNewFile()
+                    println("copying to server")
+
+                    // Copy some default files to the test server
+                    copy {
+                        from("preconfiguration/prepared_server/.")
+                        include("server.properties") // server.properties configured with usefully settings
+                        include("eula.txt") // Accepted eula
+                        into("testserver")
+                    }
+
+                    // Copying the world to use
+                    copy {
+                        from("preconfiguration/worlds/.")
+                        include("testworld#1/**")
+                        into("testserver")
+                    }
+
+                    // Copying useful mods
+                    copy {
+                        from("preconfiguration/mods/server/.", "preconfiguration/mods/both/.")
+                        include("*.jar")
+                        into("testserver/mods")
+                    }
+                }
+            }
+        }
+    }
+
     java {
         toolchain {
 //            languageVersion.set(JavaLanguageVersion.of(javaVersion.toString()))
